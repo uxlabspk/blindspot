@@ -30,7 +30,7 @@ export default function Dashboard({
   searches: SavedSearch[];
 }) {
   const router = useRouter();
-  const [niche, setNiche] = useState("driving school");
+  const [niche, setNiche] = useState("");
   const [location, setLocation] = useState("");
   const [limit, setLimit] = useState(60);
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -168,7 +168,7 @@ export default function Dashboard({
       <main className="min-w-0 flex-1 px-6 py-10">
         <h1 className="text-2xl font-semibold tracking-tight">Lead Finder</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Businesses by niche + location, with contact channels (OpenStreetMap).
+          Businesses by niche + location.
         </p>
 
         <form
