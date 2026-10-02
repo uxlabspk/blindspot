@@ -9,6 +9,13 @@ export type Lead = {
   whatsapp: string;
 };
 
+export type SavedSearch = {
+  id: string;
+  niche: string;
+  location: string;
+  limit: number;
+};
+
 export const PRESETS: Record<string, string[]> = {
   restaurant: ["amenity=restaurant"],
   cafe: ["amenity=cafe"],

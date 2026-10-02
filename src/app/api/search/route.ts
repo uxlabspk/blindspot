@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { buildOverpass, parseOverpass, resolveNiche } from "@/lib/leads";
 import { request } from "@/lib/http";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 const UA = { "User-Agent": "blindspot-leadfinder/0.1 (local prototype)" };
 const NOMINATIM = "https://nominatim.openstreetmap.org/search";
@@ -64,6 +65,12 @@ export async function GET(req: NextRequest) {
       await new Promise((r) => setTimeout(r, 1500));
     }
   }
+
+  await prisma.search.upsert({
+    where: { userId_niche_location: { userId: session.user.id, niche, location } },
+    update: { limit },
+    create: { userId: session.user.id, niche, location, limit },
+  });
 
   return NextResponse.json({
     location: geo[0].display_name,
