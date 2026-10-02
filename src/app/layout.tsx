@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lead Finder",
-  description: "Find local businesses and their contact channels",
+  title: "Blindspot — find local businesses with no website",
+  description:
+    "Enter a niche and a location, get every matching business with its contact details, and see which ones have no website.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

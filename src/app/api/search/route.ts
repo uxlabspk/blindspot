@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildOverpass, parseOverpass, resolveNiche } from "@/lib/leads";
 import { request } from "@/lib/http";
+import { auth } from "@/lib/auth";
 
 const UA = { "User-Agent": "blindspot-leadfinder/0.1 (local prototype)" };
 const NOMINATIM = "https://nominatim.openstreetmap.org/search";
 const OVERPASS = "https://overpass-api.de/api/interpreter";
 
 export async function GET(req: NextRequest) {
+  const session = await auth.api.getSession({ headers: req.headers });
+  if (!session)
+    return NextResponse.json({ error: "Sign in to search for leads." }, { status: 401 });
+
   const sp = req.nextUrl.searchParams;
   const niche = sp.get("niche") ?? "";
   const location = sp.get("location") ?? "";
