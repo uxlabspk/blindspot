@@ -87,7 +87,7 @@ export default function Dashboard({
 
   return (
     <div className="flex min-h-screen bg-zinc-50 font-sans text-zinc-900 dark:bg-black dark:text-zinc-100">
-      <aside className="flex w-56 shrink-0 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+      <aside className="sticky top-0 flex h-dvh w-56 shrink-0 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <div className="px-4 py-4">
           <p className="text-sm font-semibold tracking-tight">Blindspot</p>
           <p className="text-xs text-zinc-400">Lead Finder</p>
