@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
 const FEATURES = [
   {
@@ -15,24 +17,41 @@ const FEATURES = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth.api.getSession({ headers: await headers() });
   return (
     <div className="min-h-screen bg-zinc-50 font-sans text-zinc-900 dark:bg-black dark:text-zinc-100">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
         <span className="text-lg font-semibold tracking-tight">Blindspot</span>
         <nav className="flex items-center gap-2 text-sm">
-          <Link
-            href="/login"
-            className="rounded px-3 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-900"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/signup"
-            className="rounded bg-zinc-900 px-3 py-1.5 font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
-          >
-            Sign up
-          </Link>
+          {session ? (
+            <>
+              <span className="hidden px-3 text-zinc-500 sm:block">
+                {session.user.email}
+              </span>
+              <Link
+                href="/dashboard"
+                className="rounded bg-zinc-900 px-3 py-1.5 font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
+              >
+                Dashboard
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="rounded px-3 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/signup"
+                className="rounded bg-zinc-900 px-3 py-1.5 font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
         </nav>
       </header>
 
@@ -47,18 +66,29 @@ export default function Home() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/signup"
-            className="rounded bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
-          >
-            Get started free
-          </Link>
-          <Link
-            href="/login"
-            className="rounded border border-zinc-300 px-5 py-2.5 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
-          >
-            Log in
-          </Link>
+          {session ? (
+            <Link
+              href="/dashboard"
+              className="rounded bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
+            >
+              Go to dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/signup"
+                className="rounded bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
+              >
+                Get started free
+              </Link>
+              <Link
+                href="/login"
+                className="rounded border border-zinc-300 px-5 py-2.5 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+              >
+                Log in
+              </Link>
+            </>
+          )}
         </div>
 
         <ul className="mt-16 grid gap-6 sm:grid-cols-3">

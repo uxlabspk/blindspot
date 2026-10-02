@@ -82,6 +82,9 @@ model Search {
   niche     String
   location  String
   limit     Int      @default(60)
+  // ponytail: whole lead[] blob as jsonb, no per-lead table — swap to a Lead model + FK when results need querying/pagination
+  results   Json?
+  area      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -42,21 +42,20 @@ export default function Dashboard({
   const shown = noSite ? leads.filter((l) => !l.website) : leads;
 
   async function run(saved?: SavedSearch) {
-    const query = saved
-      ? { niche: saved.niche, location: saved.location, limit: saved.limit }
-      : { niche, location, limit };
     if (saved) {
       setNiche(saved.niche);
       setLocation(saved.location);
       setLimit(saved.limit);
     }
+    // saved searches replay stored results from the DB; nothing to re-geocode
+    const url = saved
+      ? `/api/search?id=${saved.id}`
+      : `/api/search?niche=${encodeURIComponent(niche)}&location=${encodeURIComponent(location)}&limit=${limit}`;
 
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(
-        `/api/search?niche=${encodeURIComponent(query.niche)}&location=${encodeURIComponent(query.location)}&limit=${query.limit}`,
-      );
+      const r = await fetch(url);
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "Search failed");
       setLeads(j.leads);

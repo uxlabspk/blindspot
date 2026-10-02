@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildOverpass, parseOverpass, resolveNiche } from "@/lib/leads";
+import { buildOverpass, parseOverpass, resolveNiche, type Lead } from "@/lib/leads";
 import { request } from "@/lib/http";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -14,9 +14,21 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Sign in to search for leads." }, { status: 401 });
 
   const sp = req.nextUrl.searchParams;
-  const niche = sp.get("niche") ?? "";
-  const location = sp.get("location") ?? "";
-  const limit = Math.min(Number(sp.get("limit")) || 60, 300);
+
+  // saved search → replay stored results, no re-query to Nominatim/Overpass.
+  // rows saved before `results` existed fall through to a live search and backfill.
+  let saved: { id: string; niche: string; location: string; limit: number } | null = null;
+  const id = sp.get("id");
+  if (id) {
+    const s = await prisma.search.findFirst({ where: { id, userId: session.user.id } });
+    if (!s) return NextResponse.json({ error: "Saved search not found." }, { status: 404 });
+    if (s.results) return NextResponse.json({ location: s.area, leads: s.results as Lead[] });
+    saved = s;
+  }
+
+  const niche = saved?.niche ?? sp.get("niche") ?? "";
+  const location = saved?.location ?? sp.get("location") ?? "";
+  const limit = Math.min(saved?.limit ?? (Number(sp.get("limit")) || 60), 300);
 
   const filters = resolveNiche(niche);
   if (!filters)
@@ -66,14 +78,14 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  const leads = parseOverpass(ov!).slice(0, limit);
+  const area = geo[0].display_name;
+
   await prisma.search.upsert({
     where: { userId_niche_location: { userId: session.user.id, niche, location } },
-    update: { limit },
-    create: { userId: session.user.id, niche, location, limit },
+    update: { limit, results: leads, area },
+    create: { userId: session.user.id, niche, location, limit, results: leads, area },
   });
 
-  return NextResponse.json({
-    location: geo[0].display_name,
-    leads: parseOverpass(ov!).slice(0, limit),
-  });
+  return NextResponse.json({ location: area, leads });
 }
