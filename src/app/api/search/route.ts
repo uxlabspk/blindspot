@@ -38,23 +38,30 @@ export async function GET(req: NextRequest) {
   const bbox = `${south},${west},${north},${east}`;
 
   // ponytail: OSM contact-data coverage is sparse (~10% in Lahore) — swap this layer for Google Places API when a key exists; parseOverpass stays
-  let ov: { elements?: unknown[] };
-  try {
-    ov = (await request(OVERPASS, {
-      method: "POST",
-      headers: { ...UA, "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ data: buildOverpass(filters, bbox, limit) }).toString(),
-      timeoutMs: 45000,
-    })) as typeof ov;
-  } catch {
-    return NextResponse.json(
-      { error: "Overpass failed (busy server or timeout), retry in a moment." },
-      { status: 502 },
-    );
+  // ponytail: single-endpoint retry against Overpass's flaky LB (504 measured ~1 in 3) — add mirror fallback (overpass.kumi.systems) if retry rate stays high
+  let ov: { elements?: unknown[] } | undefined;
+  for (let attempt = 0; attempt < 3 && !ov; attempt++) {
+    try {
+      ov = (await request(OVERPASS, {
+        method: "POST",
+        headers: { ...UA, "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ data: buildOverpass(filters, bbox, limit) }).toString(),
+        timeoutMs: 45000,
+      })) as { elements?: unknown[] };
+    } catch (err) {
+      if (attempt === 2) {
+        console.error("overpass failed:", err);
+        return NextResponse.json(
+          { error: "Overpass failed (busy server or timeout), retry in a moment." },
+          { status: 502 },
+        );
+      }
+      await new Promise((r) => setTimeout(r, 1500));
+    }
   }
 
   return NextResponse.json({
     location: geo[0].display_name,
-    leads: parseOverpass(ov).slice(0, limit),
+    leads: parseOverpass(ov!).slice(0, limit),
   });
 }

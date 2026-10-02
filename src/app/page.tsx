@@ -26,6 +26,9 @@ export default function Home() {
   const [area, setArea] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [noSite, setNoSite] = useState(true);
+
+  const shown = noSite ? leads.filter((l) => !l.website) : leads;
 
   async function search(e: React.FormEvent) {
     e.preventDefault();
@@ -46,7 +49,7 @@ export default function Home() {
   }
 
   function download() {
-    const blob = new Blob([toCsv(leads)], { type: "text/csv" });
+    const blob = new Blob([toCsv(shown)], { type: "text/csv" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "leads.csv";
@@ -111,19 +114,42 @@ export default function Home() {
 
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
+        {!error && !loading && area && leads.length === 0 && (
+          <p className="mt-4 text-sm text-zinc-500">
+            No businesses found for &ldquo;{niche}&rdquo; near {area}. OpenStreetMap coverage is patchy —
+            try a broader niche (e.g. restaurant) or a larger nearby town.
+          </p>
+        )}
+
         {leads.length > 0 && (
           <>
-            <div className="mt-6 flex items-center justify-between">
+            <div className="mt-6 flex items-center justify-between gap-4">
               <p className="text-sm text-zinc-500">
-                {leads.length} leads · {area}
+                {noSite ? `${shown.length} of ${leads.length} without a website` : `${leads.length} leads`} · {area}
               </p>
-              <button
-                onClick={download}
-                className="rounded border border-zinc-300 px-4 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
-              >
-                Export CSV
-              </button>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-1.5 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={noSite}
+                    onChange={(e) => setNoSite(e.target.checked)}
+                    className="h-4 w-4 accent-amber-600"
+                  />
+                  Only without a website
+                </label>
+                <button
+                  onClick={download}
+                  className="rounded border border-zinc-300 px-4 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+                >
+                  Export CSV
+                </button>
+              </div>
             </div>
+            {shown.length === 0 && (
+              <p className="mt-3 text-sm text-amber-700">
+                All {leads.length} leads have a website — untick the filter to see them.
+              </p>
+            )}
             <div className="mt-3 overflow-x-auto rounded border border-zinc-200 dark:border-zinc-800">
               <table className="w-full text-left text-sm">
                 <thead className="bg-zinc-100 text-xs uppercase text-zinc-500 dark:bg-zinc-900">
@@ -136,7 +162,7 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody>
-                  {leads.map((l, i) => (
+                  {shown.map((l, i) => (
                     <tr key={`${l.lat}-${l.lon}-${i}`} className="border-t border-zinc-200 dark:border-zinc-800">
                       <td className="px-3 py-2 font-medium">{l.name}</td>
                       <td className="px-3 py-2 text-zinc-500">{l.address || "—"}</td>
@@ -160,7 +186,9 @@ export default function Home() {
                       <td className="px-3 py-2">
                         {l.website ? (
                           <a href={l.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline dark:text-blue-400">{l.website.replace(/^https?:\/\//, "")}</a>
-                        ) : "—"}
+                        ) : (
+                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/50 dark:text-amber-300">No website</span>
+                        )}
                       </td>
                       <td className="px-3 py-2">
                         <a href={mapsUrl(l)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline dark:text-blue-400">Google Maps</a>
