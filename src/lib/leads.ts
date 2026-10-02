@@ -16,6 +16,12 @@ export type SavedSearch = {
   limit: number;
 };
 
+export type Outreach = {
+  whatsapp: string;
+  subject: string;
+  email: string;
+};
+
 export const PRESETS: Record<string, string[]> = {
   restaurant: ["amenity=restaurant"],
   cafe: ["amenity=cafe"],

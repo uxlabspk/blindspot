@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import type { Lead, SavedSearch } from "@/lib/leads";
+import type { Lead, Outreach, SavedSearch } from "@/lib/leads";
 
 const csvCell = (v: string) => `"${v.replace(/"/g, '""')}"`;
 
@@ -38,6 +38,8 @@ export default function Dashboard({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [noSite, setNoSite] = useState(true);
+  const [og, setOg] = useState<{ lead: Lead; busy: boolean; err: string; d: Outreach | null } | null>(null);
+  const [copied, setCopied] = useState("");
 
   const shown = noSite ? leads.filter((l) => !l.website) : leads;
 
@@ -77,6 +79,35 @@ export default function Dashboard({
     a.download = "leads.csv";
     a.click();
     URL.revokeObjectURL(a.href);
+  }
+
+  async function outreachFor(l: Lead) {
+    setCopied("");
+    setOg({ lead: l, busy: true, err: "", d: null });
+    try {
+      const r = await fetch("/api/outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(l),
+      });
+      const j = (await r.json().catch(() => ({}))) as Outreach & { error?: string };
+      if (!r.ok) throw new Error(j.error ?? `Server responded ${r.status}, retry.`);
+      if (!j.whatsapp || !j.email) throw new Error("Empty response from server, retry.");
+      setOg({ lead: l, busy: false, err: "", d: j });
+    } catch (err) {
+      setOg({
+        lead: l,
+        busy: false,
+        err: err instanceof Error ? err.message : "Generation failed.",
+        d: null,
+      });
+    }
+  }
+
+  function copy(text: string, label: string) {
+    navigator.clipboard.writeText(text);
+    setCopied(label);
+    setTimeout(() => setCopied(""), 1500);
   }
 
   async function signOut() {
@@ -245,7 +276,15 @@ export default function Dashboard({
                 <tbody>
                   {shown.map((l, i) => (
                     <tr key={`${l.lat}-${l.lon}-${i}`} className="border-t border-zinc-200 dark:border-zinc-800">
-                      <td className="px-3 py-2 font-medium">{l.name}</td>
+                      <td className="px-3 py-2">
+                        <button
+                          onClick={() => outreachFor(l)}
+                          title="Draft a WhatsApp message and email for this business"
+                          className="font-medium hover:text-blue-600 hover:underline"
+                        >
+                          {l.name}
+                        </button>
+                      </td>
                       <td className="px-3 py-2 text-zinc-500">{l.address || "—"}</td>
                       <td className="px-3 py-2">
                         {l.phone ? (
@@ -282,6 +321,63 @@ export default function Dashboard({
           </>
         )}
       </main>
+
+      {og && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:items-center"
+          onClick={() => setOg(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-xl rounded border border-zinc-200 bg-white p-5 shadow-lg dark:border-zinc-800 dark:bg-zinc-950"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h2 className="truncate text-sm font-semibold">{og.lead.name}</h2>
+                <p className="truncate text-xs text-zinc-500">{og.lead.address || "No address on record"}</p>
+              </div>
+              <button
+                onClick={() => setOg(null)}
+                className="shrink-0 rounded border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+              >
+                Close
+              </button>
+            </div>
+
+            {og.busy && <p className="mt-4 text-sm text-zinc-500">Writing outreach…</p>}
+            {og.err && <p className="mt-4 text-sm text-red-600">{og.err}</p>}
+
+            {og.d && (
+              <div className="mt-4 space-y-4">
+                {([["WhatsApp", og.d.whatsapp], ["Subject", og.d.subject], ["Email", og.d.email]] as const).map(
+                  ([label, value]) => (
+                    <div key={label}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</p>
+                        <button
+                          onClick={() => copy(value, label)}
+                          className="rounded border border-zinc-300 px-2 py-0.5 text-xs hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+                        >
+                          {copied === label ? "Copied" : "Copy"}
+                        </button>
+                      </div>
+                      <p className="mt-1 whitespace-pre-wrap rounded border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-900">
+                        {value}
+                      </p>
+                    </div>
+                  ),
+                )}
+                {!og.lead.whatsapp && !og.lead.email && (
+                  <p className="text-xs text-amber-700">
+                    No WhatsApp number or email on record for this business — the draft is
+                    still a usable starting point.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
