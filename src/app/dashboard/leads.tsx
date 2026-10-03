@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import type { Lead, Outreach, SavedSearch } from "@/lib/leads";
+import Image from "next/image";
 
 const csvCell = (v: string) => `"${v.replace(/"/g, '""')}"`;
 
@@ -120,8 +121,9 @@ export default function Dashboard({
     <div className="flex min-h-screen bg-zinc-50 font-sans text-zinc-900 dark:bg-black dark:text-zinc-100">
       <aside className="sticky top-0 flex h-dvh w-56 shrink-0 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <div className="px-4 py-4">
-          <p className="text-sm font-semibold tracking-tight">Blindspot</p>
-          <p className="text-xs text-zinc-400">Lead Finder</p>
+          <Image src={'/logo.svg'} alt="Blindspot" width={180} height={180} />
+          {/*<p className="text-sm font-semibold tracking-tight">Blindspot</p>
+          <p className="text-xs text-zinc-400">Lead Finder</p>*/}
         </div>
 
         <p className="px-4 pb-1 text-xs font-medium uppercase tracking-wide text-zinc-400">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
+import Image from "next/image";
 
 const FEATURES = [
   {
@@ -22,7 +23,8 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-zinc-50 font-sans text-zinc-900 dark:bg-black dark:text-zinc-100">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
-        <span className="text-lg font-semibold tracking-tight">Blind<span className="text-coral">spot</span></span>
+        {/*<span className="text-lg font-semibold tracking-tight">Blind<span className="text-coral">spot</span></span>*/}
+        <Image src={'/logo.svg'} width={180} height={180} alt="Blindspot" />
         <nav className="flex items-center gap-2 text-sm">
           {session ? (
             <>
