@@ -27,15 +27,15 @@ function Field({
 }
 
 function FormError({ msg }: { msg: string }) {
-  return <p className="mt-3 text-sm text-red-600">{msg}</p>;
+  return <p className="mt-3 text-center text-sm text-red-600">{msg}</p>;
 }
 
 function Title({ children, sub }: { children: React.ReactNode; sub?: string }) {
   return (
-    <>
-      <h1 className="text-lg font-semibold tracking-tight">{children}</h1>
-      {sub && <p className="mt-1 text-sm text-zinc-500">{sub}</p>}
-    </>
+    <div className="text-center">
+      <h1 className="text-xl font-semibold tracking-tight">{children}</h1>
+      {sub && <p className="mt-1.5 text-sm text-zinc-500">{sub}</p>}
+    </div>
   );
 }
 
@@ -111,7 +111,7 @@ export function LoginForm() {
         </button>
       )}
       {resent && (
-        <p className="mt-3 text-sm text-zinc-500">
+        <p className="mt-3 text-center text-sm text-zinc-500">
           Verification link sent — check your inbox.
         </p>
       )}
@@ -164,12 +164,12 @@ export function SignupForm() {
         <Title sub="Click the link we emailed you to activate your account.">
           Check your email
         </Title>
-        <p className="mt-4 text-sm text-zinc-500">
+        <p className="mt-4 text-center text-sm text-zinc-500">
           We sent a verification link to{" "}
           <span className="font-medium text-zinc-900 dark:text-zinc-100">{email}</span>.
         </p>
         {resent ? (
-          <p className="mt-3 text-sm text-zinc-500">
+          <p className="mt-3 text-center text-sm text-zinc-500">
             Link resent — check your inbox again.
           </p>
         ) : (
@@ -260,7 +260,7 @@ export function ForgotPasswordForm() {
         <Title sub="If that address has an account, a reset link is on its way.">
           Check your email
         </Title>
-        <p className="mt-4 text-sm text-zinc-500">
+        <p className="mt-4 text-center text-sm text-zinc-500">
           The link expires shortly. Check your spam folder if it has not arrived
           in a minute.
         </p>
@@ -335,7 +335,7 @@ export function ResetPasswordForm({ token }: { token?: string }) {
     return (
       <>
         <Title sub="This reset link is missing or incomplete.">Invalid link</Title>
-        <p className="mt-4 text-sm text-zinc-500">
+        <p className="mt-4 text-center text-sm text-zinc-500">
           Request a new one from the{" "}
           <Link href="/forgot-password" className={linkCls}>
             forgot password
@@ -350,7 +350,7 @@ export function ResetPasswordForm({ token }: { token?: string }) {
     return (
       <>
         <Title sub="Your password has been changed.">Password updated</Title>
-        <p className="mt-4 text-sm text-zinc-500">
+        <p className="mt-4 text-center text-sm text-zinc-500">
           You can now sign in with your new password.
         </p>
         <p className="mt-4 border-t border-zinc-200 pt-4 text-center text-sm text-zinc-500 dark:border-zinc-800">
@@ -424,7 +424,7 @@ export function VerifyEmailForm({ token }: { token?: string }) {
         <Title sub={msg || "This verification link is missing or expired."}>
           Verification failed
         </Title>
-        <p className="mt-4 text-sm text-zinc-500">
+        <p className="mt-4 text-center text-sm text-zinc-500">
           Request a fresh link by signing up again, or{" "}
           <Link href="/login" className={linkCls}>
             log in
@@ -438,7 +438,7 @@ export function VerifyEmailForm({ token }: { token?: string }) {
   return (
     <>
       <Title sub="Your email address has been confirmed.">Email verified</Title>
-      <p className="mt-4 text-sm text-zinc-500">
+      <p className="mt-4 text-center text-sm text-zinc-500">
         Your account is ready — go find some leads.
       </p>
       <p className="mt-4 border-t border-zinc-200 pt-4 text-center text-sm text-zinc-500 dark:border-zinc-800">
