@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import type { Lead, Outreach, SavedSearch } from "@/lib/leads";
 import Image from "next/image";
-import { Delete, DeleteIcon, Trash } from "lucide-react";
+import { Trash } from "lucide-react";
 
 const csvCell = (v: string) => `"${v.replace(/"/g, '""')}"`;
 
@@ -130,7 +130,16 @@ export default function Dashboard({
   }
 
   return (
-    <div className="flex min-h-screen bg-zinc-50 font-sans text-zinc-900 dark:bg-black dark:text-zinc-100">
+    <div className="relative isolate flex min-h-screen bg-zinc-50 font-sans text-zinc-900 dark:bg-black dark:text-zinc-100">
+      {/* same coral/grey glow as the landing and auth pages */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(55% 45% at 25% 12%, rgba(255,107,74,0.16), transparent 70%), radial-gradient(45% 40% at 85% 45%, rgba(161,161,170,0.14), transparent 70%), radial-gradient(50% 45% at 30% 95%, rgba(255,107,74,0.10), transparent 70%)",
+        }}
+      />
       <aside className="sticky top-0 flex h-dvh w-56 shrink-0 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <div className="px-4 py-4">
           <Image src={'/logo.svg'} alt="Blindspot" width={180} height={180} />
@@ -138,10 +147,11 @@ export default function Dashboard({
           <p className="text-xs text-zinc-400">Lead Finder</p>*/}
         </div>
 
-        <p className="px-4 pb-1 text-xs font-medium uppercase tracking-wide text-zinc-400">
+        <p className="mx-auto mb-1 flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-white/70 px-3 py-1 text-xs text-zinc-600 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70 dark:text-zinc-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-coral" />
           Saved searches
         </p>
-        <nav className="flex-1 overflow-y-auto px-2">
+        <nav className="flex-1 overflow-y-auto px-2 pt-2">
           {searches.length === 0 ? (
             <p className="px-2 py-1 text-xs text-zinc-400">
               Nothing yet — run a search and it lands here.
@@ -192,7 +202,11 @@ export default function Dashboard({
       </aside>
 
       <main className="min-w-0 flex-1 px-6 py-10">
-        <h1 className="text-2xl font-semibold tracking-tight">Lead Finder</h1>
+        <p className="flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-white/70 px-3 py-1 text-xs text-zinc-600 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70 dark:text-zinc-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-coral" />
+          Dashboard
+        </p>
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight">Lead Finder</h1>
         <p className="mt-1 text-sm text-zinc-500">
           Businesses by niche + location.
         </p>
@@ -202,7 +216,7 @@ export default function Dashboard({
             e.preventDefault();
             run();
           }}
-          className="mt-6 flex flex-row items-center justify-between gap-3"
+          className="mt-6 flex flex-row items-center justify-between gap-3 rounded border-zinc-200  dark:border-zinc-800 dark:bg-zinc-950"
         >
           <div className="flex flex-row items-end justify-start gap-3">
             <label className="flex flex-col gap-1 text-sm">
@@ -253,6 +267,7 @@ export default function Dashboard({
 
           {leads.length > 0 && (
             <button
+              type="button"
               onClick={() => {
                 setLeads([]);
                 setArea("");
@@ -260,7 +275,7 @@ export default function Dashboard({
                 setNiche("");
                 setLocation("");
               }}
-              className="mt-4 rounded border border-zinc-300 px-5 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+              className="rounded border border-zinc-300 px-5 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
             >
               Clear results
             </button>
@@ -268,8 +283,6 @@ export default function Dashboard({
         </form>
 
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-
-
 
         {!error && !loading && area && leads.length === 0 && (
           <p className="mt-4 text-sm text-zinc-500">
@@ -290,7 +303,7 @@ export default function Dashboard({
                     type="checkbox"
                     checked={noSite}
                     onChange={(e) => setNoSite(e.target.checked)}
-                    className="h-4 w-4 accent-amber-600"
+                    className="h-4 w-4 accent-coral"
                   />
                   Only without a website
                 </label>
