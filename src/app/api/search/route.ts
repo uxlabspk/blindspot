@@ -89,3 +89,16 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({ location: area, leads });
 }
+
+export async function DELETE(req: NextRequest) {
+  const session = await auth.api.getSession({ headers: req.headers });
+  if (!session)
+    return NextResponse.json({ error: "Sign in to manage saved searches." }, { status: 401 });
+
+  const id = req.nextUrl.searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Missing id." }, { status: 400 });
+
+  // userId in the where clause → deleting someone else's id is a no-op
+  await prisma.search.deleteMany({ where: { id, userId: session.user.id } });
+  return NextResponse.json({ ok: true });
+}

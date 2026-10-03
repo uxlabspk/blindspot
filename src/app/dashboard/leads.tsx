@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import type { Lead, Outreach, SavedSearch } from "@/lib/leads";
 import Image from "next/image";
+import { Delete, DeleteIcon, Trash } from "lucide-react";
 
 const csvCell = (v: string) => `"${v.replace(/"/g, '""')}"`;
 
@@ -73,6 +74,17 @@ export default function Dashboard({
     }
   }
 
+  async function del(id: string, niche: string) {
+    if (!confirm(`Delete the saved search "${niche}"?`)) return;
+    const r = await fetch(`/api/search?id=${id}`, { method: "DELETE" });
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      setError(j.error ?? "Could not delete the saved search.");
+      return;
+    }
+    router.refresh(); // sidebar picks up the removed row
+  }
+
   function download() {
     const blob = new Blob([toCsv(shown)], { type: "text/csv" });
     const a = document.createElement("a");
@@ -138,18 +150,30 @@ export default function Dashboard({
             searches.map((s) => {
               const active = s.niche === niche && s.location === location;
               return (
-                <button
+                <div
                   key={s.id}
-                  onClick={() => run(s)}
-                  className={`block w-full rounded px-2 py-1.5 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900 ${
+                  className={`flex items-center rounded ${
                     active ? "bg-zinc-100 font-medium dark:bg-zinc-900" : ""
                   }`}
                 >
-                  <span className="block truncate">{s.niche}</span>
-                  <span className="block truncate text-xs text-zinc-500">
-                    {s.location}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => run(s)}
+                    className="min-w-0 flex-1 px-2 py-1.5 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                  >
+                    <span className="block truncate">{s.niche}</span>
+                    <span className="block truncate text-xs text-zinc-500">
+                      {s.location}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => del(s.id, s.niche)}
+                    aria-label={`Delete saved search ${s.niche}`}
+                    title="Delete"
+                    className="mr-1 self-stretch rounded px-1.5 text-zinc-400 hover:bg-zinc-200 hover:text-zinc-700 dark:hover:bg-zinc-800"
+                  >
+                    <Trash className="h-4 w-4 text-red-400" />
+                  </button>
+                </div>
               );
             })
           )}
