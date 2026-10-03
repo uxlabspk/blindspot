@@ -1,6 +1,6 @@
 <div align="center">
 
-# Blindspot
+<img src="/public/logo.svg" alt="Blindspot" width={180} height={180} />
 
 ### Find local businesses that don't have a website.
 
