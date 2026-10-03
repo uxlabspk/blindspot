@@ -130,17 +130,8 @@ export default function Dashboard({
   }
 
   return (
-    <div className="relative isolate flex min-h-screen bg-zinc-50 font-sans text-zinc-900 dark:bg-black dark:text-zinc-100">
-      {/* same coral/grey glow as the landing and auth pages */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(55% 45% at 25% 12%, rgba(255,107,74,0.16), transparent 70%), radial-gradient(45% 40% at 85% 45%, rgba(161,161,170,0.14), transparent 70%), radial-gradient(50% 45% at 30% 95%, rgba(255,107,74,0.10), transparent 70%)",
-        }}
-      />
-      <aside className="sticky top-0 flex h-dvh w-56 shrink-0 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="flex min-h-screen bg-zinc-50 font-sans text-zinc-900 dark:bg-black dark:text-zinc-100">
+      <aside className="sticky top-0 flex h-dvh w-56 shrink-0 flex-col border-r border-zinc-200 bg-linear-to-b from-coral/15 to-white dark:border-zinc-800 dark:from-coral/10 dark:to-zinc-950">
         <div className="px-4 py-4">
           <Image src={'/logo.svg'} alt="Blindspot" width={180} height={180} />
           {/*<p className="text-sm font-semibold tracking-tight">Blindspot</p>

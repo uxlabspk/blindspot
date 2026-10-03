@@ -20,7 +20,8 @@ Rules:
 - whatsapp_message: under 400 characters, conversational, specific to this business, ends with a question, no emojis, no signature.
 - email_subject: under 60 characters, specific, no clickbait.
 - email_body: 90-140 words, plain text, one clear call to action, no placeholders, no signature (the sender adds theirs).
-- Never invent details that are not in the lead, and never copy the lead's own contact details into your draft.`;
+- Never invent details that are not in the lead, and never copy the lead's own contact details into your draft.
+- If you reference a date, day or year, use only today's date given in the user message — never a past year like 2024.`;
 
 // reply keys must not collide with the lead's keys (email/whatsapp), otherwise small
 // models just echo the lead back; instructions repeat after the data so template-less
@@ -77,7 +78,11 @@ export async function generateOutreach(lead: Lead): Promise<Outreach> {
           : { reasoning: { effort: "none" } }),
         messages: [
           { role: "system", content: SYSTEM },
-          { role: "user", content: `Business data:\n${JSON.stringify(data)}\n${ASK}` },
+          {
+            role: "user",
+            // fresh on every request so cached/stale prompts can't leak an old year
+            content: `Today's date: ${new Date().toString()}\nBusiness data:\n${JSON.stringify(data)}\n${ASK}`,
+          },
         ],
       }),
       signal: AbortSignal.timeout(60_000),
