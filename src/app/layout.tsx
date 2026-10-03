@@ -13,9 +13,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Blindspot — find local businesses with no website",
+  title: "Blindspot — find local businesses with no website | lead finder",
   description:
-    "Enter a niche and a location, get every matching business with its contact details, and see which ones have no website.",
+    "Blindspot is a free lead finder for web agencies: enter a niche and a location to get every local business without a website, with phone, WhatsApp and email, saved searches, CSV export and AI outreach drafts.",
+  keywords: [
+    "lead finder",
+    "businesses without websites",
+    "web design leads",
+    "local business leads",
+    "cold outreach list",
+    "OpenStreetMap leads",
+  ],
+  openGraph: {
+    title: "Blindspot — find local businesses with no website",
+    description:
+      "Search any niche and location, get every business without a website plus their contact details, and draft the outreach in one click.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
