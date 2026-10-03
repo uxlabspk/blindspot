@@ -324,14 +324,21 @@ export default async function Home() {
         </Section>
 
         <Section id="faq-heading" eyebrow="FAQ" title="Frequently asked questions">
-          <dl className="max-w-3xl divide-y divide-zinc-200 dark:divide-zinc-800">
+          <div className="mx-auto max-w-3xl divide-y divide-zinc-200 dark:divide-zinc-800">
             {FAQ.map((f) => (
-              <div key={f.q} className="py-5">
-                <dt className="text-sm font-semibold">{f.q}</dt>
-                <dd className="mt-2 text-sm text-zinc-500">{f.a}</dd>
-              </div>
+              <details key={f.q} className="group py-4">
+                <summary className="flex cursor-pointer list-none items-center justify-center gap-2 text-center text-sm font-semibold [&::-webkit-details-marker]:hidden">
+                  {f.q}
+                  <span className="inline-block text-coral transition-transform group-open:rotate-45">
+                    +
+                  </span>
+                </summary>
+                <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-zinc-500">
+                  {f.a}
+                </p>
+              </details>
             ))}
-          </dl>
+          </div>
         </Section>
 
         <Section id="cta-heading" eyebrow="Get started" title="Your next client is on the map — just not on the internet.">
