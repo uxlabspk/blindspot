@@ -1,14 +1,14 @@
 import type { Lead, Outreach } from "./leads";
 
-// ponytail: Mistral's cloud API and a local llama.cpp server both speak the OpenAI
+// ponytail: OpenRouter's API and a local llama.cpp server both speak the OpenAI
 // chat-completions protocol — one code path, switch between them with LLM_BASE_URL /
 // LLM_MODEL. Add a provider-specific branch (tools, reasoning formats) only when one
 // of them stops accepting this shape.
-const BASE = (process.env.LLM_BASE_URL || "https://api.mistral.ai/v1").replace(/\/+$/, "");
-const MODEL = process.env.LLM_MODEL || "mistral-small-latest";
-const KEY = process.env.MISTRAL_API_KEY || "";
+const BASE = (process.env.LLM_BASE_URL || "https://openrouter.ai/api/v1").replace(/\/+$/, "");
+const MODEL = process.env.LLM_MODEL || "openrouter/auto";
+const KEY = process.env.OPENROUTER_API_KEY || "";
 // ponytail: `chat_template_kwargs` is a llama-server extension — send it only to local
-// servers so cloud providers (Mistral rejects unknown fields) keep working untouched;
+// servers so cloud providers (OpenRouter rejects unknown fields) keep working untouched;
 // switch this to an explicit LLM_DISABLE_THINKING env var if a remote llama.cpp shows up
 const LOCAL = /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?(\/|$)/.test(BASE);
 
@@ -69,8 +69,12 @@ export async function generateOutreach(lead: Lead): Promise<Outreach> {
         model: MODEL,
         temperature: 0.7,
         // hard cap: without it llama-server generates until the context fills (the 60s abort)
-        max_tokens: 600,
-        ...(LOCAL ? { chat_template_kwargs: { enable_thinking: false } } : {}),
+        max_tokens: 8000,
+        // reasoning/thinking tokens share max_tokens — without this they eat the whole
+        // draft budget and you get finish_reason "length" with empty content
+        ...(LOCAL
+          ? { chat_template_kwargs: { enable_thinking: false } }
+          : { reasoning: { effort: "none" } }),
         messages: [
           { role: "system", content: SYSTEM },
           { role: "user", content: `Business data:\n${JSON.stringify(data)}\n${ASK}` },

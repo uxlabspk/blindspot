@@ -51,7 +51,7 @@ Dump the current view to CSV for your sequencer or spreadsheet.
 
 ### And more
 
-- **Dual LLM backend** — Mistral cloud by default, or a local `llama.cpp` server, same code path via `LLM_BASE_URL`
+- **Dual LLM backend** — OpenRouter cloud by default, or a local `llama.cpp` server, same code path via `LLM_BASE_URL`
 - **Auth built-in** — better-auth with email verification, forgot/reset password, sessions
 - **Self-checks** — `node src/lib/leads.check.ts` asserts the Overpass query builder, niche parser, and result parser without a network
 - **No keyless spam** — malformed niches are rejected before they reach the Overpass API
@@ -64,7 +64,7 @@ Dump the current view to CSV for your sequencer or spreadsheet.
 
 - Node.js 20+
 - A Postgres database
-- (Optional) `MISTRAL_API_KEY` for outreach drafts, or a local `llama.cpp` server
+- (Optional) `OPENROUTER_API_KEY` for outreach drafts, or a local `llama.cpp` server
 
 ### Run it
 
@@ -111,7 +111,7 @@ Postgres (Prisma)       Upserts the Search row (results as jsonb), returns leads
     ↓
 Dashboard table         Websiteless filter → Export CSV → outreach modal
     ↓
-LLM (Mistral / llama.cpp)   Drafts WhatsApp + email JSON for one lead
+LLM (OpenRouter / llama.cpp)  Drafts WhatsApp + email JSON for one lead
 ```
 
 **Replay:** clicking a saved search fetches `/api/search?id=…` and returns the stored `results` blob — no geocode, no Overpass round trip.
@@ -126,7 +126,7 @@ LLM (Mistral / llama.cpp)   Drafts WhatsApp + email JSON for one lead
 | Data | **OpenStreetMap** — Nominatim geocoding + Overpass queries |
 | Database | **Postgres** via **Prisma 7** |
 | Auth | **better-auth** — sessions, email verification, password reset |
-| Outreach | **Mistral** cloud or local **llama.cpp** (OpenAI-compatible) |
+| Outreach | **OpenRouter** cloud or local **llama.cpp** (OpenAI-compatible) |
 | Email | **nodemailer** (SMTP) |
 | Styling | **Tailwind CSS 4** |
 
@@ -171,9 +171,9 @@ All settings live in `.env`:
 | `BETTER_AUTH_URL` | `http://localhost:3000` | Public URL of the app |
 | `SMTP_URL` | — | `smtp://user:pass@host:587` for verification/reset mail |
 | `SMTP_FROM` | `Blindspot <no-reply@localhost>` | From header |
-| `LLM_BASE_URL` | Mistral cloud | Swap for `http://127.0.0.1:8080/v1` to go local |
-| `LLM_MODEL` | `mistral-small-latest` | Model name as served by the endpoint |
-| `MISTRAL_API_KEY` | — | Key for the cloud path (not needed locally) |
+| `LLM_BASE_URL` | OpenRouter | Swap for `http://127.0.0.1:8080/v1` to go local |
+| `LLM_MODEL` | `openrouter/auto` | Model name as served by the endpoint |
+| `OPENROUTER_API_KEY` | — | Key for the cloud path (not needed locally) |
 
 ---
 
