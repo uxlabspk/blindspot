@@ -176,55 +176,74 @@ export default function Dashboard({
             e.preventDefault();
             run();
           }}
-          className="mt-6 flex flex-wrap items-end gap-3"
+          className="mt-6 flex flex-row items-center justify-between gap-3"
         >
-          <label className="flex flex-col gap-1 text-sm">
-            Niche
-            <input
-              list="niches"
-              value={niche}
-              onChange={(e) => setNiche(e.target.value)}
-              placeholder="restaurant, dentist, amenity=…"
-              className="w-56 rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            />
-            <datalist id="niches">
-              {["restaurant", "cafe", "driving school", "dentist", "clinic", "pharmacy", "gym", "salon", "bakery", "hotel", "school", "mechanic", "grocery", "bar"].map((n) => (
-                <option key={n} value={n} />
-              ))}
-            </datalist>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Location
-            <input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Lahore, Pakistan"
-              required
-              className="w-64 rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Max
-            <select
-              value={limit}
-              onChange={(e) => setLimit(Number(e.target.value))}
-              className="rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          <div className="flex flex-row items-end justify-start gap-3">
+            <label className="flex flex-col gap-1 text-sm">
+              Niche
+              <input
+                list="niches"
+                value={niche}
+                onChange={(e) => setNiche(e.target.value)}
+                placeholder="restaurant, dentist, amenity=…"
+                className="w-56 rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              />
+              <datalist id="niches">
+                {["restaurant", "cafe", "driving school", "dentist", "clinic", "pharmacy", "gym", "salon", "bakery", "hotel", "school", "mechanic", "grocery", "bar"].map((n) => (
+                  <option key={n} value={n} />
+                ))}
+              </datalist>
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Location
+              <input
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Lahore, Pakistan"
+                required
+                className="w-64 rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Max
+              <select
+                value={limit}
+                onChange={(e) => setLimit(Number(e.target.value))}
+                className="rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              >
+                {[20, 60, 150, 300].map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded bg-zinc-900 px-5 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
             >
-              {[20, 60, 150, 300].map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded bg-zinc-900 px-5 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
-          >
-            {loading ? "Searching…" : "Search"}
-          </button>
+              {loading ? "Searching…" : "Search"}
+            </button>
+          </div>
+
+          {leads.length > 0 && (
+            <button
+              onClick={() => {
+                setLeads([]);
+                setArea("");
+                setError("");
+                setNiche("");
+                setLocation("");
+              }}
+              className="mt-4 rounded border border-zinc-300 px-5 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+            >
+              Clear results
+            </button>
+          )}
         </form>
 
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
+
 
         {!error && !loading && area && leads.length === 0 && (
           <p className="mt-4 text-sm text-zinc-500">
