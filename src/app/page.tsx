@@ -127,15 +127,15 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section aria-labelledby={id} className="mt-24">
-      <p className="flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-white/70 px-3 py-1 text-xs text-zinc-600 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70 dark:text-zinc-400">
+    <section aria-labelledby={id} className="mt-24 text-center">
+      <p className="mx-auto flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-white/70 px-3 py-1 text-xs text-zinc-600 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70 dark:text-zinc-400">
         <span className="h-1.5 w-1.5 rounded-full bg-coral" />
         {eyebrow}
       </p>
-      <h2 id={id} className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
+      <h2 id={id} className="mx-auto mt-4 max-w-3xl text-2xl font-semibold tracking-tight sm:text-3xl">
         {title}
       </h2>
-      {sub && <p className="mt-3 max-w-2xl text-sm text-zinc-500">{sub}</p>}
+      {sub && <p className="mx-auto mt-3 max-w-2xl text-sm text-zinc-500">{sub}</p>}
       <div className="mt-8">{children}</div>
     </section>
   );
@@ -204,16 +204,16 @@ export default async function Home() {
 
       <main className="mx-auto container px-6 py-16 sm:py-24">
         {/* hero section */}
-        <div className="flex min-h-[75vh] scroll-mt-16 flex-col items-start justify-center py-16 md:min-h-[70vh]">
+        <div className="flex min-h-[75vh] scroll-mt-16 flex-col items-center justify-center py-16 text-center md:min-h-[70vh]">
           <p className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white/70 px-3 py-1 text-xs text-zinc-600 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70 dark:text-zinc-400">
             <span className="h-1.5 w-1.5 rounded-full bg-coral" />
             Free · Open data · No API keys
           </p>
-          <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
             Find the local businesses with{" "}
             <span className="text-coral">no website</span>.
           </h1>
-          <p className="mt-5 max-w-xl text-zinc-500">
+          <p className="mx-auto mt-5 max-w-xl text-zinc-500">
             Enter a niche and a location. Blindspot lists every matching
             business, flags the ones with no website, and hands you the contact
             details to reach them.
