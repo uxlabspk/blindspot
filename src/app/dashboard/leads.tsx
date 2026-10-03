@@ -211,7 +211,7 @@ export default function Dashboard({
               <select
                 value={limit}
                 onChange={(e) => setLimit(Number(e.target.value))}
-                className="rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                className="appearance-none rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
               >
                 {[20, 60, 150, 300].map((n) => (
                   <option key={n} value={n}>{n}</option>
