@@ -324,16 +324,16 @@ export default async function Home() {
         </Section>
 
         <Section id="faq-heading" eyebrow="FAQ" title="Frequently asked questions">
-          <div className="mx-auto max-w-3xl divide-y divide-zinc-200 dark:divide-zinc-800">
+          <div className="mx-auto container divide-y divide-zinc-200 dark:divide-zinc-800">
             {FAQ.map((f) => (
               <details key={f.q} className="group py-4">
-                <summary className="flex cursor-pointer list-none items-center justify-center gap-2 text-center text-sm font-semibold [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-center text-sm font-semibold [&::-webkit-details-marker]:hidden">
                   {f.q}
                   <span className="inline-block text-coral transition-transform group-open:rotate-45">
                     +
                   </span>
                 </summary>
-                <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-zinc-500">
+                <p className="mt-3 text-start text-sm text-zinc-500">
                   {f.a}
                 </p>
               </details>
@@ -342,14 +342,10 @@ export default async function Home() {
         </Section>
 
         <Section id="cta-heading" eyebrow="Get started" title="Your next client is on the map — just not on the internet.">
-          <div className="relative isolate overflow-hidden rounded border border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="relative isolate overflow-hidden rounded text-center">
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 -z-10"
-              style={{
-                background:
-                  "radial-gradient(55% 70% at 20% 20%, rgba(255,107,74,0.14), transparent 70%), radial-gradient(45% 60% at 85% 80%, rgba(161,161,170,0.12), transparent 70%)",
-              }}
             />
             <p className="mx-auto max-w-xl text-sm text-zinc-500">
               Create a free account, run your first search, and see how many
