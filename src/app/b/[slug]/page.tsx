@@ -7,6 +7,7 @@ import { request } from "@/lib/http";
 import { slugify } from "@/lib/leads";
 import { scoreLead, extractLinks, classifyLinkError, inspect, type LinkCheck } from "@/lib/score";
 import type { Lead } from "@/lib/leads";
+import MessageGenerator from "./messages";
 
 const UA = { "User-Agent": "blindspot-leadfinder/0.1 (local prototype)" };
 
@@ -64,6 +65,8 @@ export default async function BusinessPage({
 
   const score = scoreLead(lead, html);
   const checks = inspect(lead, html, { loadMs, fetchError, links: linkChecks });
+  // only failed checks feed the prompt — the "never invent problems" guarantee
+  const problems = checks.flatMap((c) => (c.status === "fail" && c.problem ? [c.problem] : []));
 
   const verdictColor =
     score.total >= 70 ? "text-emerald-600 dark:text-emerald-400" : score.total >= 40 ? "text-amber-600 dark:text-amber-400" : "text-zinc-500";
@@ -136,6 +139,8 @@ export default async function BusinessPage({
             ))}
           </ul>
         </div>
+
+        <MessageGenerator lead={lead} problems={problems} />
 
         <div className="mt-6 rounded border border-zinc-200 bg-white p-5 text-sm dark:border-zinc-800 dark:bg-zinc-950">
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Contact</p>

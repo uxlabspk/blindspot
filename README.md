@@ -47,6 +47,8 @@ Click a business name to open `/b/<business-name>` — a per-lead opportunity sc
 
 Below the score, an automatic inspection of the public website checks six things — mobile responsiveness, loading speed, broken links, SSL certificate, contact form, booking functionality — and every failed check names the specific problem plus the CodeHunts service that fixes it.
 
+A **Generate messages** button on the same page then streams back three drafts in real time — professional email, LinkedIn connection note, short business introduction — grounded strictly in those verified observations: the prompt carries only the failed checks and the system prompt forbids inventing problems.
+
 ### Saved Searches
 
 Every search persists per user (`userId + niche + location`). The sidebar replays past searches from storage without re-querying Overpass.
@@ -150,10 +152,12 @@ blindspot/
 │   │   ├── page.tsx         Server component — auth gate + load saved searches
 │   │   └── leads.tsx        Client UI — search form, results table, outreach modal
 │   ├── b/[slug]/
-│   │   └── page.tsx         Per-business score + website inspection page
+│   │   ├── page.tsx         Per-business score + website inspection page
+│   │   └── messages.tsx     Streaming AI message generator (client)
 │   └── api/
 │       ├── search/          Geocode → Overpass → persist → return leads
 │       ├── outreach/        LLM outreach draft for one lead
+│       ├── messages/        Streaming email/LinkedIn/intro generator
 │       └── auth/            better-auth catch-all
 ├── src/lib/
 │   ├── leads.ts             Lead types, niche presets, Overpass build/parse, slugify

@@ -30,6 +30,81 @@ const ASK = `Reply now with ONLY the JSON object: {"whatsapp_message": "...", "e
 
 const clean = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 
+// one place for model params so both generators agree on them
+async function chat(extra: Record<string, unknown>): Promise<Response> {
+  try {
+    return await fetch(`${BASE}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(KEY ? { Authorization: `Bearer ${KEY}` } : {}),
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        temperature: 0.7,
+        // hard cap: without it llama-server generates until the context fills (the 60s abort)
+        max_tokens: 8000,
+        // reasoning/thinking tokens share max_tokens — without it they eat the whole
+        // draft budget and you finish with finish_reason "length" on empty content
+        ...(LOCAL
+          ? { chat_template_kwargs: { enable_thinking: false } }
+          : { reasoning: { effort: "none" } }),
+        ...extra,
+      }),
+      signal: AbortSignal.timeout(60_000),
+    });
+  } catch (err) {
+    throw new Error(
+      `LLM unreachable at ${BASE} — ${err instanceof Error ? err.message : "network error"}.`,
+    );
+  }
+}
+
+// ——— three-message generator (email / LinkedIn / intro), grounded in verified observations ———
+
+const MSG_SYSTEM = `You write outreach for CodeHunts, a small agency that builds websites, contact forms and online booking systems for local businesses.
+You get a business and a list of VERIFIED observations from an automated website inspection.
+Rules:
+- Use ONLY the listed observations. Never invent, exaggerate or assume a problem that is not listed. If nothing is listed, cite no problem at all.
+- Address the business by name; never copy its own contact details back at it.
+- Reply with ONLY these three sections, nothing else:
+
+### EMAIL
+<professional email: 90-140 words, specific to this business, one clear call to action, no signature>
+
+### LINKEDIN
+<connection request note: under 300 characters, friendly and specific, no networking filler>
+
+### INTRO
+<short business introduction: 2-3 sentences, how you would open a cold call or voicemail>`;
+
+export function messagesPrompt(lead: Lead, problems: string[]): { system: string; user: string } {
+  // only what the copy needs — lat/lon/phone/email stay out so the model can't echo them back
+  const data = { name: lead.name, address: lead.address, website: lead.website };
+  const obs = problems.length
+    ? problems.map((p) => `- ${p}`).join("\n")
+    : "None recorded — do not cite any problem; write a warm, general introduction.";
+  return {
+    system: MSG_SYSTEM,
+    user: `Business data:\n${JSON.stringify(data)}\nVerified website observations:\n${obs}`,
+  };
+}
+
+/** Upstream streaming response (SSE) — the caller pipes the body straight to the client. */
+export async function streamMessages(lead: Lead, problems: string[]): Promise<Response> {
+  const { system, user } = messagesPrompt(lead, problems);
+  const res = await chat({
+    stream: true,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+  });
+  if (!res.ok) throw new Error(`LLM responded ${res.status}, retry.`);
+  if (!res.body) throw new Error("LLM returned an empty response, retry.");
+  return res;
+}
+
 export function parseOutreach(text: string): Outreach {
   const json = text
     .replace(/^```(?:json)?\s*/i, "")
@@ -58,40 +133,16 @@ export async function generateOutreach(lead: Lead): Promise<Outreach> {
   // only what the copy needs — dropping lat/lon/whatsapp digits keeps small models
   // from treating the payload as something to re-emit
   const data = { name: lead.name, address: lead.address, phone: lead.phone, website: lead.website, email: lead.email };
-  let res: Response;
-  try {
-    res = await fetch(`${BASE}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(KEY ? { Authorization: `Bearer ${KEY}` } : {}),
+  const res = await chat({
+    messages: [
+      { role: "system", content: SYSTEM },
+      {
+        role: "user",
+        // fresh on every request so cached/stale prompts can't leak an old year
+        content: `Today's date: ${new Date().toString()}\nBusiness data:\n${JSON.stringify(data)}\n${ASK}`,
       },
-      body: JSON.stringify({
-        model: MODEL,
-        temperature: 0.7,
-        // hard cap: without it llama-server generates until the context fills (the 60s abort)
-        max_tokens: 8000,
-        // reasoning/thinking tokens share max_tokens — without this they eat the whole
-        // draft budget and you get finish_reason "length" with empty content
-        ...(LOCAL
-          ? { chat_template_kwargs: { enable_thinking: false } }
-          : { reasoning: { effort: "none" } }),
-        messages: [
-          { role: "system", content: SYSTEM },
-          {
-            role: "user",
-            // fresh on every request so cached/stale prompts can't leak an old year
-            content: `Today's date: ${new Date().toString()}\nBusiness data:\n${JSON.stringify(data)}\n${ASK}`,
-          },
-        ],
-      }),
-      signal: AbortSignal.timeout(60_000),
-    });
-  } catch (err) {
-    throw new Error(
-      `LLM unreachable at ${BASE} — ${err instanceof Error ? err.message : "network error"}.`,
-    );
-  }
+    ],
+  });
   if (!res.ok) throw new Error(`LLM responded ${res.status}, retry.`);
   // llama-server sometimes answers 200 with an empty or cut-off body (queued behind an
   // aborted request, or the client dropped the socket) — read it once, name the failure
