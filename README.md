@@ -152,7 +152,8 @@ blindspot/
 │   │   ├── page.tsx         Server component — auth gate + load saved searches
 │   │   └── leads.tsx        Client UI — search form, results table, outreach modal
 │   ├── b/[slug]/
-│   │   ├── page.tsx         Per-business score + website inspection page
+│   │   ├── page.tsx         Server: auth, lead lookup, site fetch, scoring
+│   │   ├── view.tsx         Dashboard-style shell — sidebar tabs switch the panels
 │   │   └── messages.tsx     Streaming AI message generator (client)
 │   └── api/
 │       ├── search/          Geocode → Overpass → persist → return leads
