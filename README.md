@@ -45,6 +45,8 @@ Hit “Draft outreach” next to any lead and an LLM drafts a WhatsApp message, 
 
 Click a business name to open `/b/<business-name>` — a per-lead opportunity score out of 100. The page fetches the site once and weighs the gaps: outdated website (+20), no booking system (+20), poor mobile performance (+15), no enquiry form (+15), no SSL (+10), relevant industry (+20), then prints the verdict (e.g. `82/100 – High opportunity`). Businesses with no site at all score 85/100 by default.
 
+Below the score, an automatic inspection of the public website checks six things — mobile responsiveness, loading speed, broken links, SSL certificate, contact form, booking functionality — and every failed check names the specific problem plus the CodeHunts service that fixes it.
+
 ### Saved Searches
 
 Every search persists per user (`userId + niche + location`). The sidebar replays past searches from storage without re-querying Overpass.
@@ -148,7 +150,7 @@ blindspot/
 │   │   ├── page.tsx         Server component — auth gate + load saved searches
 │   │   └── leads.tsx        Client UI — search form, results table, outreach modal
 │   ├── b/[slug]/
-│   │   └── page.tsx         Per-business opportunity score page
+│   │   └── page.tsx         Per-business score + website inspection page
 │   └── api/
 │       ├── search/          Geocode → Overpass → persist → return leads
 │       ├── outreach/        LLM outreach draft for one lead
@@ -156,7 +158,7 @@ blindspot/
 ├── src/lib/
 │   ├── leads.ts             Lead types, niche presets, Overpass build/parse, slugify
 │   ├── leads.check.ts       Self-check for the above
-│   ├── score.ts             Opportunity scoring (site signals → /100 + verdict)
+│   ├── score.ts             Opportunity scoring + site inspection (problems → CodeHunts services)
 │   ├── score.check.ts       Self-check for the scorer
 │   ├── llm.ts               Outreach prompt + JSON parser (cloud or local)
 │   ├── llm.check.ts         Self-check for the parser

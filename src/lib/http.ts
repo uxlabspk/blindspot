@@ -4,7 +4,7 @@ import https from "node:https";
 export function request(
   url: string,
   opts: {
-    method?: "GET" | "POST";
+    method?: "GET" | "POST" | "HEAD";
     body?: string;
     headers?: Record<string, string>;
     timeoutMs?: number;
