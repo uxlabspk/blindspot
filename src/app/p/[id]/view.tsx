@@ -7,6 +7,7 @@ import { Gauge, ClipboardCheck, Sparkles, Contact } from "lucide-react";
 import type { Lead } from "@/lib/leads";
 import type { Check, Score } from "@/lib/score";
 import MessageGenerator from "./messages";
+import { useRouter } from "next/navigation";
 
 const TABS = [
   { label: "Overview", icon: Gauge },
@@ -26,7 +27,8 @@ export default function BusinessView({
   score: Score;
   checks: Check[];
   problems: string[];
-}) {
+  }) {
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>("Overview");
   const url = lead.website ? (lead.website.includes("://") ? lead.website : `https://${lead.website}`) : "";
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lead.lat},${lead.lon}`;
@@ -69,12 +71,13 @@ export default function BusinessView({
         </nav>
 
         <div className="border-t border-zinc-200 px-4 py-3 dark:border-zinc-800">
-          <Link
-            href="/dashboard"
+          <button
+            type="button"
+            onClick={() => router.back()}
             className="block w-full rounded border border-zinc-300 px-3 py-1 text-center text-xs hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
           >
-            Back to dashboard
-          </Link>
+            Go Back
+          </button>
         </div>
       </aside>
 
