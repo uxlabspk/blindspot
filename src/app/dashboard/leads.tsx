@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import type { Lead, Outreach, SavedSearch } from "@/lib/leads";
+import { slugify } from "@/lib/leads";
 import Image from "next/image";
+import Link from "next/link";
 import { Trash } from "lucide-react";
 
 const csvCell = (v: string) => `"${v.replace(/"/g, '""')}"`;
@@ -326,13 +328,13 @@ export default function Dashboard({
                   {shown.map((l, i) => (
                     <tr key={`${l.lat}-${l.lon}-${i}`} className="border-t border-zinc-200 dark:border-zinc-800">
                       <td className="px-3 py-2">
-                        <button
-                          onClick={() => outreachFor(l)}
-                          title="Draft a WhatsApp message and email for this business"
+                        <Link
+                          href={`/b/${slugify(l.name)}`}
+                          title="Open this business's opportunity score"
                           className="font-medium hover:text-blue-600 hover:underline"
                         >
                           {l.name}
-                        </button>
+                        </Link>
                       </td>
                       <td className="px-3 py-2 text-zinc-500">{l.address || "—"}</td>
                       <td className="px-3 py-2">
@@ -361,6 +363,14 @@ export default function Dashboard({
                       </td>
                       <td className="px-3 py-2">
                         <a href={mapsUrl(l)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline dark:text-blue-400">Google Maps</a>
+                        {" · "}
+                        <button
+                          onClick={() => outreachFor(l)}
+                          title="Draft a WhatsApp message and email for this business"
+                          className="text-blue-600 hover:underline dark:text-blue-400"
+                        >
+                          Draft outreach
+                        </button>
                       </td>
                     </tr>
                   ))}

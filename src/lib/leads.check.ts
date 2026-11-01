@@ -1,5 +1,10 @@
 import assert from "node:assert";
-import { buildOverpass, parseOverpass, resolveNiche } from "./leads.ts";
+import { buildOverpass, parseOverpass, resolveNiche, slugify } from "./leads.ts";
+
+// slugify
+assert.equal(slugify("Khan's Grill & Cafe"), "khans-grill-cafe");
+assert.equal(slugify("  SPACES   here "), "spaces-here");
+assert.equal(slugify("مرکزی دکان"), "business");
 
 // resolveNiche
 assert.deepEqual(resolveNiche("driving school"), ["amenity=driving_school", "shop=driving_school"]);

@@ -39,6 +39,10 @@ export const PRESETS: Record<string, string[]> = {
   bar: ["amenity=pub", "amenity=bar"],
 };
 
+// URL slug for /b/<slug> links and lookups; "business" keeps odd names routable
+export const slugify = (name: string) =>
+  name.toLowerCase().trim().replace(/['’]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "business";
+
 const FILTER_RE = /^[a-zA-Z0-9_:]+=[a-zA-Z0-9_ .:@-]+$/;
 
 export function resolveNiche(input: string): string[] | null {

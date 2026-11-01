@@ -39,7 +39,11 @@ One checkbox narrows the table to businesses with no website — the actual pitc
 
 ### One-Click Outreach
 
-Click a lead's name and an LLM drafts a WhatsApp message, email subject, and body tuned to that specific business — never inventing details, never copying the lead's own contact info back at them.
+Hit “Draft outreach” next to any lead and an LLM drafts a WhatsApp message, email subject, and body tuned to that specific business — never inventing details, never copying the lead's own contact info back at them.
+
+### Lead Score
+
+Click a business name to open `/b/<business-name>` — a per-lead opportunity score out of 100. The page fetches the site once and weighs the gaps: outdated website (+20), no booking system (+20), poor mobile performance (+15), no enquiry form (+15), no SSL (+10), relevant industry (+20), then prints the verdict (e.g. `82/100 – High opportunity`). Businesses with no site at all score 85/100 by default.
 
 ### Saved Searches
 
@@ -53,7 +57,7 @@ Dump the current view to CSV for your sequencer or spreadsheet.
 
 - **Dual LLM backend** — OpenRouter cloud by default, or a local `llama.cpp` server, same code path via `LLM_BASE_URL`
 - **Auth built-in** — better-auth with email verification, forgot/reset password, sessions
-- **Self-checks** — `node src/lib/leads.check.ts` asserts the Overpass query builder, niche parser, and result parser without a network
+- **Self-checks** — `node src/lib/leads.check.ts` and `node src/lib/score.check.ts` assert the Overpass query builder, niche parser, result parser, and lead scoring without a network
 - **No keyless spam** — malformed niches are rejected before they reach the Overpass API
 
 ---
@@ -87,6 +91,7 @@ Open [http://localhost:3000](http://localhost:3000), sign up, and search.
 **Self-checks:**
 ```bash
 node src/lib/leads.check.ts
+node src/lib/score.check.ts
 node src/lib/llm.check.ts
 ```
 
@@ -142,13 +147,17 @@ blindspot/
 │   ├── dashboard/
 │   │   ├── page.tsx         Server component — auth gate + load saved searches
 │   │   └── leads.tsx        Client UI — search form, results table, outreach modal
+│   ├── b/[slug]/
+│   │   └── page.tsx         Per-business opportunity score page
 │   └── api/
 │       ├── search/          Geocode → Overpass → persist → return leads
 │       ├── outreach/        LLM outreach draft for one lead
 │       └── auth/            better-auth catch-all
 ├── src/lib/
-│   ├── leads.ts             Lead types, niche presets, Overpass build/parse
+│   ├── leads.ts             Lead types, niche presets, Overpass build/parse, slugify
 │   ├── leads.check.ts       Self-check for the above
+│   ├── score.ts             Opportunity scoring (site signals → /100 + verdict)
+│   ├── score.check.ts       Self-check for the scorer
 │   ├── llm.ts               Outreach prompt + JSON parser (cloud or local)
 │   ├── llm.check.ts         Self-check for the parser
 │   ├── auth.ts              better-auth config
