@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   if (id) {
     const s = await prisma.search.findFirst({ where: { id, userId: session.user.id } });
     if (!s) return NextResponse.json({ error: "Saved search not found." }, { status: 404 });
-    if (s.results) return NextResponse.json({ location: s.area, leads: s.results as Lead[] });
+    if (s.results) return NextResponse.json({ id: s.id, location: s.area, leads: s.results as Lead[] });
     saved = s;
   }
 
@@ -81,13 +81,13 @@ export async function GET(req: NextRequest) {
   const leads = parseOverpass(ov!).slice(0, limit);
   const area = geo[0].display_name;
 
-  await prisma.search.upsert({
+  const row = await prisma.search.upsert({
     where: { userId_niche_location: { userId: session.user.id, niche, location } },
     update: { limit, results: leads, area },
     create: { userId: session.user.id, niche, location, limit, results: leads, area },
   });
 
-  return NextResponse.json({ location: area, leads });
+  return NextResponse.json({ id: row.id, location: area, leads });
 }
 
 export async function DELETE(req: NextRequest) {

@@ -43,7 +43,7 @@ Hit “Draft outreach” next to any lead and an LLM drafts a WhatsApp message, 
 
 ### Lead Score
 
-Click a business name to open `/b/<business-name>` — a per-lead opportunity score out of 100. The page fetches the site once and weighs the gaps: outdated website (+20), no booking system (+20), poor mobile performance (+15), no enquiry form (+15), no SSL (+10), relevant industry (+20), then prints the verdict (e.g. `82/100 – High opportunity`). Businesses with no site at all score 85/100 by default.
+Click a business name to open `/p/<lead-id>` — a per-lead opportunity score out of 100. The page fetches the site once and weighs the gaps: outdated website (+20), no booking system (+20), poor mobile performance (+15), no enquiry form (+15), no SSL (+10), relevant industry (+20), then prints the verdict (e.g. `82/100 – High opportunity`). Businesses with no site at all score 85/100 by default.
 
 Below the score, an automatic inspection of the public website checks six things — mobile responsiveness, loading speed, broken links, SSL certificate, contact form, booking functionality — and every failed check names the specific problem plus the CodeHunts service that fixes it.
 
@@ -123,7 +123,7 @@ Dashboard table         Websiteless filter → Export CSV → outreach modal
 LLM (OpenRouter / llama.cpp)  Drafts WhatsApp + email JSON for one lead
 ```
 
-**Replay:** clicking a saved search fetches `/api/search?id=…` and returns the stored `results` blob — no geocode, no Overpass round trip.
+**Replay:** every search lives at `/s/<search-id>` — running one pushes you there and the server renders the stored `results` blob. No geocode, no Overpass round trip.
 
 ---
 
@@ -151,17 +151,19 @@ blindspot/
 │   ├── dashboard/
 │   │   ├── page.tsx         Server component — auth gate + load saved searches
 │   │   └── leads.tsx        Client UI — search form, results table, outreach modal
-│   ├── b/[slug]/
-│   │   ├── page.tsx         Server: auth, lead lookup, site fetch, scoring
+│   ├── p/[id]/
+│   │   ├── page.tsx         Server: auth, lead lookup by deterministic id, scoring
 │   │   ├── view.tsx         Dashboard-style shell — sidebar tabs switch the panels
 │   │   └── messages.tsx     Streaming AI message generator (client)
+│   ├── s/[id]/
+│   │   └── page.tsx         Saved search — stored results rendered under a URL
 │   └── api/
 │       ├── search/          Geocode → Overpass → persist → return leads
 │       ├── outreach/        LLM outreach draft for one lead
 │       ├── messages/        Streaming email/LinkedIn/intro generator
 │       └── auth/            better-auth catch-all
 ├── src/lib/
-│   ├── leads.ts             Lead types, niche presets, Overpass build/parse, slugify
+│   ├── leads.ts             Lead types, niche presets, Overpass build/parse, leadId
 │   ├── leads.check.ts       Self-check for the above
 │   ├── score.ts             Opportunity scoring + site inspection (problems → CodeHunts services)
 │   ├── score.check.ts       Self-check for the scorer

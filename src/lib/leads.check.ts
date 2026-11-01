@@ -1,10 +1,12 @@
 import assert from "node:assert";
-import { buildOverpass, parseOverpass, resolveNiche, slugify } from "./leads.ts";
+import { buildOverpass, parseOverpass, resolveNiche, leadId } from "./leads.ts";
 
-// slugify
-assert.equal(slugify("Khan's Grill & Cafe"), "khans-grill-cafe");
-assert.equal(slugify("  SPACES   here "), "spaces-here");
-assert.equal(slugify("مرکزی دکان"), "business");
+// leadId: deterministic, uuid-shaped, distinct per business
+const id1 = leadId({ name: "Khan Cafe", lat: 31.5, lon: 74.3 });
+assert.equal(id1, leadId({ name: "Khan Cafe", lat: 31.5, lon: 74.3 }));
+assert.match(id1, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+assert.notEqual(id1, leadId({ name: "Khan Cafe", lat: 31.5, lon: 74.4 }));
+assert.notEqual(id1, leadId({ name: "Khan Cafe 2", lat: 31.5, lon: 74.3 }));
 
 // resolveNiche
 assert.deepEqual(resolveNiche("driving school"), ["amenity=driving_school", "shop=driving_school"]);

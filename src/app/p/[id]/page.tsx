@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { request } from "@/lib/http";
-import { slugify } from "@/lib/leads";
+import { leadId } from "@/lib/leads";
 import { scoreLead, extractLinks, classifyLinkError, inspect, type LinkCheck } from "@/lib/score";
 import type { Lead } from "@/lib/leads";
 import BusinessView from "./view";
@@ -26,11 +26,11 @@ async function fetchSite(
 export default async function BusinessPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ id: string }>;
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/login");
-  const { slug } = await params;
+  const { id } = await params;
 
   // ponytail: leads live as a jsonb blob — scan the user's saved searches by slug in JS;
   // move to a Lead table with a slug index when the scan gets slow
@@ -40,7 +40,7 @@ export default async function BusinessPage({
   });
   let lead: Lead | null = null;
   for (const s of searches) {
-    lead = ((s.results as Lead[] | null) ?? []).find((l) => slugify(l.name) === slug) ?? null;
+    lead = ((s.results as Lead[] | null) ?? []).find((l) => leadId(l) === id) ?? null;
     if (lead) break;
   }
   if (!lead) notFound();

@@ -39,9 +39,25 @@ export const PRESETS: Record<string, string[]> = {
   bar: ["amenity=pub", "amenity=bar"],
 };
 
-// URL slug for /b/<slug> links and lookups; "business" keeps odd names routable
-export const slugify = (name: string) =>
-  name.toLowerCase().trim().replace(/['’]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "business";
+const fnv = (s: string, seed: number) => {
+  let h = seed;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+};
+
+// deterministic UUID-shaped id from stable lead fields — no stored id needed, so it
+// works on old saved blobs and stays stable when a search re-runs. Four FNV passes
+// (128 bits) make collisions negligible at per-user lead counts; not cryptographic.
+export function leadId(l: Pick<Lead, "name" | "lat" | "lon">): string {
+  const key = `${l.name}|${l.lat}|${l.lon}`;
+  const hex = [0x811c9dc5, 0x9e3779b9, 0x85ebca6b, 0xc2b2ae35]
+    .map((seed) => fnv(key, seed).toString(16).padStart(8, "0"))
+    .join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+}
 
 const FILTER_RE = /^[a-zA-Z0-9_:]+=[a-zA-Z0-9_ .:@-]+$/;
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import type { Lead, Outreach, SavedSearch } from "@/lib/leads";
-import { slugify } from "@/lib/leads";
+import { leadId } from "@/lib/leads";
 import Image from "next/image";
 import Link from "next/link";
 import { Trash } from "lucide-react";
@@ -28,17 +28,20 @@ export default function Dashboard({
   name,
   email,
   searches,
+  initial,
 }: {
   name: string;
   email: string;
   searches: SavedSearch[];
+  // /s/<id> passes the stored results; the dashboard renders with none
+  initial?: { niche: string; location: string; limit: number; area: string; leads: Lead[] };
 }) {
   const router = useRouter();
-  const [niche, setNiche] = useState("");
-  const [location, setLocation] = useState("");
-  const [limit, setLimit] = useState(60);
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [area, setArea] = useState("");
+  const [niche, setNiche] = useState(initial?.niche ?? "");
+  const [location, setLocation] = useState(initial?.location ?? "");
+  const [limit, setLimit] = useState(initial?.limit ?? 60);
+  const [leads, setLeads] = useState<Lead[]>(initial?.leads ?? []);
+  const [area, setArea] = useState(initial?.area ?? "");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [noSite, setNoSite] = useState(true);
@@ -47,29 +50,18 @@ export default function Dashboard({
 
   const shown = noSite ? leads.filter((l) => !l.website) : leads;
 
-  async function run(saved?: SavedSearch) {
-    if (saved) {
-      setNiche(saved.niche);
-      setLocation(saved.location);
-      setLimit(saved.limit);
-    }
-    // saved searches replay stored results from the DB; nothing to re-geocode
-    const url = saved
-      ? `/api/search?id=${saved.id}`
-      : `/api/search?niche=${encodeURIComponent(niche)}&location=${encodeURIComponent(location)}&limit=${limit}`;
-
+  async function run() {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(url);
+      const r = await fetch(
+        `/api/search?niche=${encodeURIComponent(niche)}&location=${encodeURIComponent(location)}&limit=${limit}`,
+      );
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "Search failed");
-      setLeads(j.leads);
-      setArea(j.location);
-      // server re-renders, so the sidebar picks up the just-saved search
-      router.refresh();
+      // results are URL-addressable now — the /s/<id> server page renders them
+      router.push(`/s/${j.id}`);
     } catch (err) {
-      setLeads([]);
       setError(err instanceof Error ? err.message : "Search failed");
     } finally {
       setLoading(false);
@@ -160,7 +152,7 @@ export default function Dashboard({
                   }`}
                 >
                   <button
-                    onClick={() => run(s)}
+                    onClick={() => router.push(`/s/${s.id}`)}
                     className="min-w-0 flex-1 px-2 py-1.5 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
                   >
                     <span className="block truncate">{s.niche}</span>
@@ -329,7 +321,7 @@ export default function Dashboard({
                     <tr key={`${l.lat}-${l.lon}-${i}`} className="border-t border-zinc-200 dark:border-zinc-800">
                       <td className="px-3 py-2">
                         <Link
-                          href={`/b/${slugify(l.name)}`}
+                          href={`/p/${leadId(l)}`}
                           title="Open this business's opportunity score"
                           className="font-medium hover:text-blue-600 hover:underline"
                         >
