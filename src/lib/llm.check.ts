@@ -41,9 +41,13 @@ assert.throws(() => parseOutreach(""), /unparseable draft/);
 const mp = messagesPrompt(lead("Khan Driving School"), ["No online booking or appointment flow found.", "No contact form anywhere on the page."]);
 assert.ok(mp.system.includes("### EMAIL") && mp.system.includes("### LINKEDIN") && mp.system.includes("### INTRO"));
 assert.ok(/never invent/i.test(mp.system), "system prompt must forbid inventing problems");
-assert.ok(mp.user.includes("Khan Driving School"));
+// plain labeled data (local models mishandle JSON blobs), name first and repeated at the end
+assert.ok(mp.user.startsWith("Business name: Khan Driving School"));
 assert.ok(mp.user.includes("- No online booking or appointment flow found."));
 assert.ok(mp.user.includes("- No contact form anywhere on the page."));
+// placeholder + point-of-view guards (a weak model wrote "Hello [Business Name]" once)
+assert.ok(/placeholder/i.test(mp.system) && /never as the business/i.test(mp.system));
+assert.ok(mp.user.includes('Write TO "Khan Driving School"') && mp.user.includes("never use placeholders"));
 // phone/email never reach the prompt (the model would echo them back); address is context
 assert.ok(!mp.user.includes("a@b.c") && !mp.user.includes('"phone"'));
 

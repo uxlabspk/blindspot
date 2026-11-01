@@ -6,7 +6,9 @@ import type { Lead, Outreach } from "./leads";
 // of them stops accepting this shape.
 const BASE = (process.env.LLM_BASE_URL || "https://openrouter.ai/api/v1").replace(/\/+$/, "");
 const MODEL = process.env.LLM_MODEL || "openrouter/auto";
-const KEY = process.env.OPENROUTER_API_KEY || "";
+// bearer token for whatever LLM_BASE_URL points at — OpenRouter, Unsloth Studio,
+// or any local server that requires a key (empty = no auth header sent)
+const KEY = process.env.LLM_API_KEY || process.env.OPENROUTER_API_KEY || "";
 // ponytail: `chat_template_kwargs` is a llama-server extension — send it only to local
 // servers so cloud providers (OpenRouter rejects unknown fields) keep working untouched;
 // switch this to an explicit LLM_DISABLE_THINKING env var if a remote llama.cpp shows up
@@ -66,27 +68,32 @@ const MSG_SYSTEM = `You write outreach for CodeHunts, a small agency that builds
 You get a business and a list of VERIFIED observations from an automated website inspection.
 Rules:
 - Use ONLY the listed observations. Never invent, exaggerate or assume a problem that is not listed. If nothing is listed, cite no problem at all.
-- Address the business by name; never copy its own contact details back at it.
+- You write TO the business, as CodeHunts reaching out — never as the business itself ("our website" is wrong; "your website" is right).
+- Use the exact business name from the data. Never write placeholders such as [Business Name], [Your Name] or <...> — always insert the real value.
+- Never copy the business's own contact details back at it.
 - Reply with ONLY these three sections, nothing else:
 
 ### EMAIL
-<professional email: 90-140 words, specific to this business, one clear call to action, no signature>
+(professional email: 90-140 words, specific to this business, one clear call to action, no signature)
 
 ### LINKEDIN
-<connection request note: under 300 characters, friendly and specific, no networking filler>
+(connection request note: under 300 characters, friendly and specific, no networking filler)
 
 ### INTRO
-<short business introduction: 2-3 sentences, how you would open a cold call or voicemail>`;
+(short business introduction: 2-3 sentences, how you would open a cold call or voicemail)`;
 
 export function messagesPrompt(lead: Lead, problems: string[]): { system: string; user: string } {
-  // only what the copy needs — lat/lon/phone/email stay out so the model can't echo them back
-  const data = { name: lead.name, address: lead.address, website: lead.website };
+  // plain labeled lines instead of JSON — small local models read them far more reliably;
+  // phone/email stay out so the model can't echo them back
+  const data = `Business name: ${lead.name}\nAddress: ${lead.address || "not recorded"}\nWebsite: ${lead.website || "none"}`;
   const obs = problems.length
     ? problems.map((p) => `- ${p}`).join("\n")
     : "None recorded — do not cite any problem; write a warm, general introduction.";
+  // name repeated after the data: instructions that come last survive template-less
+  // completion servers and small models that skim the top of the prompt
   return {
     system: MSG_SYSTEM,
-    user: `Business data:\n${JSON.stringify(data)}\nVerified website observations:\n${obs}`,
+    user: `${data}\nVerified website observations:\n${obs}\n\nWrite TO "${lead.name}" as CodeHunts. Address it by that exact name and never use placeholders like [Business Name] or [Your Name].`,
   };
 }
 

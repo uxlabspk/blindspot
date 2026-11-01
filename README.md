@@ -188,7 +188,7 @@ All settings live in `.env`:
 | `SMTP_FROM` | `Blindspot <no-reply@localhost>` | From header |
 | `LLM_BASE_URL` | OpenRouter | Swap for `http://127.0.0.1:8080/v1` to go local |
 | `LLM_MODEL` | `openrouter/auto` | Model name as served by the endpoint |
-| `OPENROUTER_API_KEY` | — | Key for the cloud path (not needed locally) |
+| `LLM_API_KEY` | — | Bearer key for `LLM_BASE_URL` — OpenRouter key or a local server's key (keyless servers need none); `OPENROUTER_API_KEY` still works |
 
 ---
 
