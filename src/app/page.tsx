@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import Image from "next/image";
 
@@ -143,6 +144,7 @@ function Section({
 
 export default async function Home() {
   const session = await auth.api.getSession({ headers: await headers() });
+  if (session) redirect('/dashboard');
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
