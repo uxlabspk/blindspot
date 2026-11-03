@@ -60,7 +60,7 @@ export default function BusinessView({
               key={label}
               onClick={() => setTab(label)}
               aria-current={tab === label ? "page" : undefined}
-              className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm ${
+              className={`flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm ${
                 tab === label ? "bg-zinc-100 font-medium dark:bg-zinc-900" : "hover:bg-zinc-100 dark:hover:bg-zinc-900"
               }`}
             >
