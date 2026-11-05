@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import type { Lead, Outreach, SavedSearch } from "@/lib/leads";
@@ -23,6 +23,33 @@ function toCsv(leads: Lead[]) {
 
 const mapsUrl = (l: Lead) =>
   `https://www.google.com/maps/search/?api=1&query=${l.lat},${l.lon}`;
+
+// Photon (komoot's OSM geocoder) — free, no key, CORS-enabled
+const PHOTON = "https://photon.komoot.io/api/";
+const NO_SUGS: string[] = [];
+
+type PhotonProps = {
+  name?: string;
+  street?: string;
+  housenumber?: string;
+  city?: string;
+  district?: string;
+  county?: string;
+  state?: string;
+  country?: string;
+};
+
+// "Lahore, Lahore District, Punjab, Pakistan" — later parts repeating the name drop out
+const photonLabel = (p: PhotonProps) =>
+  [
+    p.name,
+    p.street && (p.housenumber ? `${p.street} ${p.housenumber}` : p.street),
+    p.city ?? p.district ?? p.county,
+    p.state,
+    p.country,
+  ]
+    .filter((v, i, a): v is string => !!v && a.indexOf(v) === i)
+    .join(", ");
 
 export default function Dashboard({
   name,
@@ -47,6 +74,61 @@ export default function Dashboard({
   const [noSite, setNoSite] = useState(true);
   const [og, setOg] = useState<{ lead: Lead; busy: boolean; err: string; d: Outreach | null } | null>(null);
   const [copied, setCopied] = useState("");
+  const [sugs, setSugs] = useState<{ q: string; list: string[] }>({ q: "", list: [] });
+  const [active, setActive] = useState(-1);
+  const [focused, setFocused] = useState(false);
+  const [picked, setPicked] = useState("");
+
+  const q = location.trim();
+  // a list only shows for the text actually in the box right now
+  const shownSugs =
+    focused && q.length >= 3 && q !== picked && sugs.q === q ? sugs.list : NO_SUGS;
+
+  // Photon autocomplete for the location field; the picked text still goes to the
+  // server, which geocodes it with Nominatim as before. Any failure here just
+  // leaves the plain free-text field working.
+  useEffect(() => {
+    if (!focused || q.length < 3 || q === picked || sugs.q === q) return;
+    let stale = false;
+    const t = setTimeout(async () => {
+      let list: string[] = [];
+      try {
+        const r = await fetch(`${PHOTON}?q=${encodeURIComponent(q)}&limit=6&lang=en`);
+        const j = (await r.json()) as { features?: { properties?: PhotonProps }[] };
+        list = (j.features ?? [])
+          .map((f) => f.properties && photonLabel(f.properties))
+          .filter((s): s is string => !!s);
+      } catch {
+        // Photon unreachable → keep the empty list, the free-text field still works
+      }
+      if (!stale) setSugs({ q, list });
+    }, 250);
+    return () => {
+      stale = true;
+      clearTimeout(t);
+    };
+  }, [focused, q, picked, sugs.q]);
+
+  function pick(s: string) {
+    setLocation(s);
+    setPicked(s); // don't re-query the label we just chose
+    setActive(-1);
+  }
+
+  function locKey(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Escape") return setSugs({ q, list: [] });
+    if (shownSugs.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive((a) => (a + 1) % shownSugs.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((a) => (a <= 0 ? shownSugs.length - 1 : a - 1));
+    } else if (e.key === "Enter" && active >= 0) {
+      e.preventDefault();
+      pick(shownSugs[active]);
+    }
+  }
 
   const shown = noSite ? leads.filter((l) => !l.website) : leads;
 
@@ -219,15 +301,52 @@ export default function Dashboard({
                 ))}
               </datalist>
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="relative flex flex-col gap-1 text-sm">
               Location
               <input
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={(e) => {
+                  setLocation(e.target.value);
+                  setActive(-1);
+                }}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                onKeyDown={locKey}
+                role="combobox"
+                aria-expanded={shownSugs.length > 0}
+                aria-controls="locations"
+                aria-autocomplete="list"
+                aria-activedescendant={active >= 0 ? `loc-${active}` : undefined}
+                autoComplete="off"
                 placeholder="Lahore, Pakistan"
                 required
                 className="w-64 rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
               />
+              {shownSugs.length > 0 && (
+                <ul
+                  id="locations"
+                  role="listbox"
+                  // keep focus in the input so blur can't close the list before the click
+                  onMouseDown={(e) => e.preventDefault()}
+                  className="absolute top-full left-0 z-20 mt-1 w-72 overflow-hidden rounded border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-950"
+                >
+                  {shownSugs.map((s, i) => (
+                    <li
+                      key={`${i}-${s}`}
+                      id={`loc-${i}`}
+                      role="option"
+                      aria-selected={i === active}
+                      onClick={() => pick(s)}
+                      onMouseEnter={() => setActive(i)}
+                      className={`cursor-pointer truncate px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900 ${
+                        i === active ? "bg-zinc-100 dark:bg-zinc-900" : ""
+                      }`}
+                    >
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Max

@@ -6,7 +6,13 @@ import { prisma } from "@/lib/prisma";
 
 const UA = { "User-Agent": "blindspot-leadfinder/0.1 (local prototype)" };
 const NOMINATIM = "https://nominatim.openstreetmap.org/search";
-const OVERPASS = "https://overpass-api.de/api/interpreter";
+// public Overpass instances race each other; a single one is flaky (502/504 measured often)
+const MIRRORS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+];
+const CACHE_MS = 24 * 60 * 60 * 1000;
 
 export async function GET(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers });
@@ -39,6 +45,23 @@ export async function GET(req: NextRequest) {
   if (!location.trim())
     return NextResponse.json({ error: "Location required." }, { status: 400 });
 
+  // repeat search → stored results, no Nominatim/Overpass wait. limit is part of the
+  // key because a bigger Max would otherwise be answered with the old, smaller result set.
+  const hit = await prisma.search.findUnique({
+    where: { userId_niche_location: { userId: session.user.id, niche, location } },
+  });
+  if (
+    hit?.results &&
+    hit.limit === limit &&
+    Date.now() - hit.updatedAt.getTime() < CACHE_MS
+  ) {
+    console.log(
+      `CACHE HIT id=${hit.id} now=${Date.now()} updated=${hit.updatedAt.getTime()} ageMs=${Date.now() - hit.updatedAt.getTime()} cacheMs=${CACHE_MS} limitHit=${hit.limit} limitReq=${limit}`,
+    );
+    return NextResponse.json({ id: hit.id, location: hit.area ?? location, leads: hit.results as Lead[] });
+  }
+  console.log(`CACHE MISS hasHit=${!!hit} hasResults=${!!hit?.results} hitLimit=${hit?.limit} reqLimit=${limit} ageMs=${hit ? Date.now() - hit.updatedAt.getTime() : -1}`);
+
   let geo: { display_name: string; boundingbox: string[] }[];
   try {
     geo = (await request(`${NOMINATIM}?format=jsonv2&limit=1&q=${encodeURIComponent(location)}`, {
@@ -56,26 +79,25 @@ export async function GET(req: NextRequest) {
   const bbox = `${south},${west},${north},${east}`;
 
   // ponytail: OSM contact-data coverage is sparse (~10% in Lahore) — swap this layer for Google Places API when a key exists; parseOverpass stays
-  // ponytail: single-endpoint retry against Overpass's flaky LB (504 measured ~1 in 3) — add mirror fallback (overpass.kumi.systems) if retry rate stays high
+  // ponytail: race the mirrors instead of retrying one — measured 34-48 s and frequent 502 on a saturated public instance, losers keep running and are dropped
   let ov: { elements?: unknown[] } | undefined;
-  for (let attempt = 0; attempt < 3 && !ov; attempt++) {
-    try {
-      ov = (await request(OVERPASS, {
-        method: "POST",
-        headers: { ...UA, "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ data: buildOverpass(filters, bbox, limit) }).toString(),
-        timeoutMs: 45000,
-      })) as { elements?: unknown[] };
-    } catch (err) {
-      if (attempt === 2) {
-        console.error("overpass failed:", err);
-        return NextResponse.json(
-          { error: "Overpass failed (busy server or timeout), retry in a moment." },
-          { status: 502 },
-        );
-      }
-      await new Promise((r) => setTimeout(r, 1500));
-    }
+  try {
+    ov = (await Promise.any(
+      MIRRORS.map((url) =>
+        request(url, {
+          method: "POST",
+          headers: { ...UA, "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ data: buildOverpass(filters, bbox, limit) }).toString(),
+          timeoutMs: 45000,
+        }),
+      ),
+    )) as { elements?: unknown[] };
+  } catch {
+    console.error("overpass failed: every mirror rejected or timed out");
+    return NextResponse.json(
+      { error: "Overpass failed (busy servers or timeout), retry in a moment." },
+      { status: 502 },
+    );
   }
 
   const leads = parseOverpass(ov!).slice(0, limit);
