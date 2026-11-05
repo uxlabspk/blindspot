@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Gauge, ClipboardCheck, Sparkles, Contact } from "lucide-react";
+import { Gauge, ClipboardCheck, Sparkles, Contact, ArrowLeft } from "lucide-react";
 import type { Lead } from "@/lib/leads";
 import type { Check, Score } from "@/lib/score";
 import MessageGenerator from "./messages";
@@ -70,22 +70,21 @@ export default function BusinessView({
           ))}
         </nav>
 
-        <div className="border-t border-zinc-200 px-4 py-3 dark:border-zinc-800">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="block w-full rounded border border-zinc-300 px-3 py-1 text-center text-xs hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
-          >
-            Go Back
-          </button>
-        </div>
       </aside>
 
       <main className="min-w-0 flex-1 px-6 py-10">
-        <p className="flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-white/70 px-3 py-1 text-xs text-zinc-600 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70 dark:text-zinc-400">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="cursor-pointer flex w-fit items-center gap-1 rounded-full border border-zinc-200 bg-white/70 px-3 py-1 text-xs text-zinc-600 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70 dark:text-zinc-400"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Go Back
+        </button>
+        {/*<p className="flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-white/70 px-3 py-1 text-xs text-zinc-600 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70 dark:text-zinc-400">
           <span className="h-1.5 w-1.5 rounded-full bg-coral" />
           {score.total}/100 · {score.verdict}
-        </p>
+        </p>*/}
         <h1 className="mt-3 text-2xl font-semibold tracking-tight">{lead.name}</h1>
         <p className="mt-1 text-sm text-zinc-500">
           {lead.address || "No address on record"}
@@ -167,7 +166,7 @@ export default function BusinessView({
                     {c.problem && <p className="mt-0.5 text-sm text-zinc-500">{c.problem}</p>}
                     {c.service && (
                       <p className="mt-0.5 text-sm">
-                        <span className="font-medium">CodeHunts can offer:</span>{" "}
+                        <span className="font-medium">Offer:</span>{" "}
                         <span className="text-zinc-600 dark:text-zinc-400">{c.service}</span>
                       </p>
                     )}

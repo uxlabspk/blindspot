@@ -253,16 +253,11 @@ export default function Dashboard({
           {leads.length > 0 && (
             <button
               type="button"
-              onClick={() => {
-                setLeads([]);
-                setArea("");
-                setError("");
-                setNiche("");
-                setLocation("");
-              }}
+              // TODO: Check if we can use any other option
+              onClick={() => router.push('/dashboard')}
               className="rounded border border-zinc-300 px-5 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
             >
-              Clear results
+              New Query
             </button>
           )}
         </form>
